@@ -81,20 +81,22 @@ socket.on('user-disconnected', (id) => {
   }
 });
 
-if (navigator.geolocation) {
-  navigator.permissions.query({name:'geolocation'}).then(function(result) {
-    if (result.state === 'granted') {
-      navigator.geolocation.getCurrentPosition(successCallback, errorCallback, { enableHighAccuracy: true });
-    } else if (result.state === 'prompt') {
-      navigator.geolocation.getCurrentPosition(successCallback, errorCallback, { enableHighAccuracy: true });
-    } else if (result.state === 'denied') {
-      console.log('Geolocation permissions denied');
-    }
-  });
-
-  result.onchange = function() {
-    console.log(result.state);
-  };
+function getLocation() {
+  if (navigator.geolocation) {
+    navigator.permissions.query({ name: 'geolocation' }).then(function (result) {
+      if (result.state === 'granted' || result.state === 'prompt') {
+        navigator.geolocation.getCurrentPosition(successCallback, errorCallback, { enableHighAccuracy: true });
+      } else if (result.state === 'denied') {
+        console.log('Geolocation permissions denied');
+        alert('Location access is required to show your position on the map.');
+      }
+      result.onchange = function () {
+        console.log(result.state);
+      };
+    });
+  } else {
+    alert('Geolocation is not supported by this browser.');
+  }
 }
 
 function successCallback(position) {
@@ -108,4 +110,8 @@ function successCallback(position) {
 
 function errorCallback(error) {
   console.error(error);
+  alert('Error fetching location. Please enable location services and try again.');
 }
+
+getLocation();
+
