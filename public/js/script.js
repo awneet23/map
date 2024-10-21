@@ -82,22 +82,30 @@ socket.on('user-disconnected', (id) => {
 });
 
 if (navigator.geolocation) {
-  navigator.geolocation.getCurrentPosition(
-    (position) => {
-      const { latitude, longitude } = position.coords;
-      console.log(`Sending location: ${latitude}, ${longitude}`);
-      socket.emit('send-location', { latitude, longitude });
-
-      // Set initial map view to user's location
-      map.setView([latitude, longitude], 16);
-    },
-    (error) => {
-      console.error(error);
-    },
-    {
-      enableHighAccuracy: true,
-      timeout: 5000,
-      maximumAge: 0
+  navigator.permissions.query({name:'geolocation'}).then(function(result) {
+    if (result.state === 'granted') {
+      navigator.geolocation.getCurrentPosition(successCallback, errorCallback, { enableHighAccuracy: true });
+    } else if (result.state === 'prompt') {
+      navigator.geolocation.getCurrentPosition(successCallback, errorCallback, { enableHighAccuracy: true });
+    } else if (result.state === 'denied') {
+      console.log('Geolocation permissions denied');
     }
-  );
+  });
+
+  result.onchange = function() {
+    console.log(result.state);
+  };
+}
+
+function successCallback(position) {
+  const { latitude, longitude } = position.coords;
+  console.log(`Sending location: ${latitude}, ${longitude}`);
+  socket.emit('send-location', { latitude, longitude });
+
+  // Set initial map view to user's location
+  map.setView([latitude, longitude], 16);
+}
+
+function errorCallback(error) {
+  console.error(error);
 }
